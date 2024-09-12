@@ -1,22 +1,30 @@
-: Code for activity 2
-
-; - cruz San Juan Aaron
-; - Lopez Rodriguez Julio Cesar
-; - Rodriguez Meneses Jvierr
-; - Eslava Colin Cesar Barush
+; Code for activity 3
 
 ;code segment starts here
 	.org 0000h
+
 	;program port
 	;Port A -->, PortB -->, Port C <--
+	; (out)      (out)       (in)
 	ld a,89h
 	out (CW),a
+
 	;init stack
 	ld SP,27ffh
-	;-----------
-	ld hl,text1
+
+ start:
+	ld hl,prompt1
 	call disp_text
 	call read_password
+	call validate_password
+
+	ld hl, attemps
+	ld a, (hl)
+	cp "3"
+	jp nz, start
+
+	ld hl, finish_message
+	call disp_text
 	halt
 
 ;subrutinas
@@ -27,13 +35,13 @@
 ;output: character in A to LCD
 ;------------------------------
 disp_text:
-repeat1:
+next_word:
 	ld a,(hl)
 	cp "&"
 	jp z,end_sub1
 	out (LCD),a
 	inc hl
-	jp repeat1
+	jp next_word
 end_sub1:
 	ret
 
@@ -47,30 +55,47 @@ read_password:
 	ld b,4
 read_other:
 	in a,(KEYB)
-    cp 40h
-    jp c,valid_text
-    ld hl, error_text
-    call disp_text
-
-    ret
-
-valid_text:
 	ld (hl),a
+	out (LCD),"*"
 	djnz read_other
 
 	ret
 
+; password validation
+validate_password:
+	ld hl, passw
+	ld a ,(hl)
+	cp (pattern)
+	jp z,valid
+
+	ld hl, denied
+	call disp_text
+
+	ld hl, attemps
+	ld a, (hl)
+	add a, 01h
+	ret
+valid:
+	ld hl, granted
+	call disp_text
+	ret
+
+
 ;data segment
 	.org 2000h
-text1:	   .db "NIP: &"
+prompt1	   .db "NIP: &"
 error_text .db "INVALID &"
+granted    .db "ACCES GRANTED"
+denied     .db "ACCES denied"
+finish_message     .db "NEXT TIME"
 pattern    .db "1234"
 passw	   .db 00h,00h,00h,00h
+attemps    .db 00h
 
 ;constants
-LCD:	.equ 00h
-KEYB:	.equ 01h
-CW	.equ 03h
+LCD		.equ 00h
+KEYB	.equ 01h
+CW		.equ 03h
 
 ;program ends
 	.end
