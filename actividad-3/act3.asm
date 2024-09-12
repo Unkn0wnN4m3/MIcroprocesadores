@@ -12,22 +12,36 @@
 	;init stack
 	ld SP,27ffh
 
+ ; start point.
  start:
 	ld hl,prompt1
 	call disp_text
 	call read_password
 	call validate_password
 
+	;
 	ld hl, attemps
+
+	; if everything goes good, jump directly to the finish point
+	ld a, (hl)
+	cp "0"
+	jp z, finish
+
+	; jump to start if while the maximum number of of attemps hasn't been
+	; reached
 	ld a, (hl)
 	cp "3"
 	jp nz, start
 
-	ld hl, finish_message
+	; reached maximun number of attemps
+	ld hl blocked
 	call disp_text
+	jp finish
+
+finish:
 	halt
 
-;subrutinas
+;subrutines
 
 ;------------------------------
 ;display a text on LCD address
@@ -46,9 +60,9 @@ end_sub1:
 	ret
 
 ;------------------------------
-;display a text on LCD address
-;input: text address on hl
-;output: character in A to LCD
+; Read from keyboard
+;input: ascii from keyboard
+;output: None
 ;------------------------------
 read_password:
 	ld hl,passw
@@ -62,6 +76,9 @@ read_other:
 	ret
 
 ; password validation
+; compares "passw" and "pattern"
+; input: contents in passw and pattern
+; output: attemps
 validate_password:
 	ld hl, passw
 	ld a ,(hl)
@@ -85,9 +102,9 @@ valid:
 	.org 2000h
 prompt1	   .db "NIP: &"
 error_text .db "INVALID &"
-granted    .db "ACCES GRANTED"
-denied     .db "ACCES denied"
-finish_message     .db "NEXT TIME"
+granted    .db "ACCES GRANTED &"
+denied     .db "ACCES denied &"
+blocked     .db "U HAVE BEEN BLOCKED &"
 pattern    .db "1234"
 passw	   .db 00h,00h,00h,00h
 attemps    .db 00h
