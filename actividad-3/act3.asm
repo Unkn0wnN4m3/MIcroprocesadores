@@ -15,14 +15,14 @@
  ; start point.
 start:
 	ld hl, prompt1
-	call disp_text
-	call read_password
-	call validate_password
+	call disp_text ; "nip: "
+	call read_password ; ingreses el digito numero a numero
+	call validate_password; la contrasena se igual a 1234
 
-	ld hl, attemps
+	ld hl, attemps ; 0x13434
 
 	; if everything goes good, jump directly to the finish point
-	ld a, (hl)
+	ld a, (hl) ; A -> 03
 	cp "0"
 	jp z, finish
 
@@ -69,7 +69,7 @@ read_password:
 read_other:
 	in a,(KEYB)
 	ld (hl),a
-	out (LCD),"*"
+	out (LCD), "*"
 	djnz read_other
 
 	ret
