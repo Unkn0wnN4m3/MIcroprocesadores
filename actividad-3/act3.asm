@@ -13,13 +13,12 @@
 	ld SP,27ffh
 
  ; start point.
- start:
-	ld hl,prompt1
+start:
+	ld hl, prompt1
 	call disp_text
 	call read_password
 	call validate_password
 
-	;
 	ld hl, attemps
 
 	; if everything goes good, jump directly to the finish point
@@ -100,19 +99,19 @@ valid:
 
 ;data segment
 	.org 2000h
-prompt1	   .db "NIP: &"
+prompt1    .db "NIP: &"
 error_text .db "INVALID &"
 granted    .db "ACCES GRANTED &"
 denied     .db "ACCES denied &"
-blocked     .db "U HAVE BEEN BLOCKED &"
+blocked    .db "U HAVE BEEN BLOCKED &"
 pattern    .db "1234"
-passw	   .db 00h,00h,00h,00h
-attemps    .db 00h
+passw      .db 00h,00h,00h,00h
+attemps    .db "3"
 
 ;constants
-LCD		.equ 00h
-KEYB	.equ 01h
-CW		.equ 03h
+LCD   .equ 00h
+KEYB  .equ 01h
+CW    .equ 03h
 
 ;program ends
 	.end
