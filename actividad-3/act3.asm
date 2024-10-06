@@ -1,6 +1,6 @@
 ; Code for activity 3
 
-;code segment starts here
+; ------------- code segment starts here ------------
 	.org 0000h
 
 	;program port
@@ -12,100 +12,103 @@
 	;init stack
 	ld SP,27ffh
 
- ; start point.
+ ; ---------- start point. -----------------
 start:
-	ld hl, prompt1
-	call disp_text ; "nip: "
-	call read_password ; ingreses el digito numero a numero
-	call validate_password; la contrasena se igual a 1234
-
-	ld hl, attemps ; 0x13434
-
-	; if everything goes good, jump directly to the finish point
-	ld a, (hl) ; A -> 03
-	cp 30h
-	jp z, finish
-
-	; jump to start if while the maximum number of of attemps hasn't been
-	; reached
-	ld a, (hl)
-	cp 33h
-	jp nz, start
-
-	; reached maximun number of attemps
-	ld hl,blocked
-	call disp_text
-	jp finish
-
+  call dis_wellcome ; impime la palabra "NIP: "
+  call get_passw ; obtiene la contrasena e imprime "*" en lugar de numeros
+  call validate
+  ; por ultimo, verificar intentos
 finish:
-	halt
+  halt
 
-;subrutines
+; ---------- start subroutines -------------
 
-;------------------------------
-;display a text on LCD address
-;input: text address on hl
-;output: character in A to LCD
-;------------------------------
-disp_text:
-next_word:
-	ld a,(hl)
-	cp 26h
-	jp z,end_sub1
-	out (LCD),a
-	inc hl
-	jp next_word
-end_sub1:
-	ret
+dis_wellcome:
+  ld hl, prompt1 ; hl -> es una direccion
 
-;------------------------------
-; Read from keyboard
-;input: ascii from keyboard
-;output: None
-;------------------------------
-read_password:
-	ld hl,passw
-	ld b,4
-read_other:
-	in a,(KEYB)
-	ld (hl),a
-	djnz read_other
+loop1:
+  ld a, (hl) ; a -> lo que vale esa direccion
+  ; cp compara con a
+  cp '&' ; 26 en hex
+  jp nz, another_word
+  ret
 
-	ret
+another_word:
+  out (LCD), a
+  inc hl
+  jp loop1
 
-; password validation
-; compares "passw" and "pattern"
-; input: contents in passw and pattern
-; output: attemps
-validate_password:
-	ld hl, passw
-	ld a ,(hl)
-	cp (pattern)
-	jp z,valid
+get_passw:
+  ld hl, passw ; hl -> es la direccion de passw
+  ld b, 4 ; b -> max de caracteres permitidos
 
-	ld hl, denied
-	call disp_text
+loop2:
+  ld a, '*'
+  out (LCD), a
+  in a, (KEYB) ; -> lo que VALE keyb se guarda en a
+  ld (hl), a ; a -> lo que VALE hl
+  ; djnz compara con b
+  djnz loop2
+  ret
 
-	ld hl, attemps
-	ld a, (hl)
-	add a, 01h
-	ret
-valid:
-	ld hl, granted
-	call disp_text
-	ret
+validate:
+  ld de, passw
+  ld hl, pattern
+  ld b, 4
+
+loop3:
+  ld a, (de) ; -> lo que vale passw
+  ; cp siempre compara con el registro a
+  cp (hl)
+  jp nz, incorrect
+  inc hl
+  inc de
+  djnz loop3
+  jp correct
+
+done:
+  jp finish
+
+correct:
+  ld hl, granted ; hl -> es una direccion
+
+loop4:
+  ld a, (hl) ; a -> lo que vale esa direccion
+  ; cp compara con a
+  cp '&' ; 26 en hex
+  jp nz, another_word1
+  jp done
+
+another_word1:
+  out (LCD), a
+  inc hl
+  jp loop4
+
+incorrect:
+  ld hl, denied ; hl -> es una direccion
+
+loop5:
+  ld a, (hl) ; a -> lo que vale esa direccion
+  ; cp compara con a
+  cp '&' ; 26 en hex
+  jp nz, another_word2
+  jp done
+
+another_word2:
+  out (LCD), a
+  inc hl
+  jp loop5
 
 
-;data segment
+; ---------------- data segment ------------------
 	.org 2000h
 prompt1    .db "NIP: &"
-error_text .db "INVALID &"
-granted    .db "ACCES GRANTED &"
-denied     .db "ACCES denied &"
-blocked    .db "U HAVE BEEN BLOCKED &"
-pattern    .db "1234"
 passw      .db 00h,00h,00h,00h
-attemps    .db "3"
+pattern    .db 31h, 32h, 33h, 34h
+granted    .db "ACCES GRANTED &"
+denied     .db "ACCES DENIED &"
+;blocked    .db "U HAVE BEEN BLOCKED &"
+;attemps    .db "3"
 
 ;constants
 LCD   .equ 00h
