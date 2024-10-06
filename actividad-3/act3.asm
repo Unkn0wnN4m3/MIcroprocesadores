@@ -23,17 +23,17 @@ start:
 
 	; if everything goes good, jump directly to the finish point
 	ld a, (hl) ; A -> 03
-	cp "0"
+	cp 30h
 	jp z, finish
 
 	; jump to start if while the maximum number of of attemps hasn't been
 	; reached
 	ld a, (hl)
-	cp "3"
+	cp 33h
 	jp nz, start
 
 	; reached maximun number of attemps
-	ld hl blocked
+	ld hl,blocked
 	call disp_text
 	jp finish
 
@@ -50,7 +50,7 @@ finish:
 disp_text:
 next_word:
 	ld a,(hl)
-	cp "&"
+	cp 26h
 	jp z,end_sub1
 	out (LCD),a
 	inc hl
@@ -69,7 +69,6 @@ read_password:
 read_other:
 	in a,(KEYB)
 	ld (hl),a
-	out (LCD), "*"
 	djnz read_other
 
 	ret
